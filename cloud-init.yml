@@ -9,12 +9,12 @@ locale: en_US.UTF-8
 disable_root: true
 
 # if you want to allow SSH with password, set this to true
-ssh_pwauth: false
+ssh_pwauth: true
 
 # users[0] (the first user in users) overrides the user directive.
 users:
   - name: kube
-    gecos: Kubernetes Clustorious
+    gecos: Kube use
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: users, adm
     shell: /bin/bash
@@ -22,41 +22,34 @@ users:
     ## Generate with:
     # $ mkpasswd --method=SHA-512 --rounds=4096
     hashed_passwd: |
-      $6$rounds=4096$pBZCcpBYJ45UWZvO$79Bi.56lBlpOv/jNcc6gEEyr1z/LtfW0SV227xWbEI2lUOLtHwPBlRv7m4K9wDq0nkMt5gBDRN92MD1JHzsaB0
-    ## Or use plaintext
-    # plain_text_passwd: master
+      $6$rounds=4096$XXXXXXXXXXXXX...........
     ssh_authorized_keys:
-      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJIIE8yB7iKpQoE7nhIK2WhdC+4BnLFde9kVtiaYakie eddsa-key-20250928"
-    ## Import ssh from github
-    # ssh_import_id:
-    #   - gh:mbrav
-
-# IPv6 is disabled by default
-network:
-  version: 2
-  ethernets:
-    eth0:
-      dhcp4: true
-      dhcp6: false
+      - "ssh-ed25519 AAAA.........."
 
 # Env variables
 write_files:
-  - path: /etc/environment
+  - path: /etc/netplan/99-network.yaml
     content: |
-      MY_ENV="my value"
-    append: true
+      network:
+        version: 2
+        ethernets:
+          <INTERFACE>:
+            dhcp4: <DHCP>
+            dhcp6: false
+            <STATIC>
 
 # list of packages to install after the VM comes up
 package_upgrade: true
 package_reboot_if_required: true
 package_update: true
 packages:
-  - qemu-guest-agent
-  - htop
+  - vim
+  - curl
 
-# run the commands after the first install, the last command is saving VM ip into /tmp/my-ip file
 runcmd:
   - echo "Hello World!"
+  - chmod 600 /etc/netplan/99-network.yaml
+  - netplan apply
 
 
 # written to /var/log/cloud-init-output.log

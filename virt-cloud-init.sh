@@ -100,6 +100,12 @@ help() {
 	echo -e "-s --storage        Specify VM images size (in K|M|G). Default: $vm_storage"
 	echo -e "-c --cpus           Specify CPU numbers. Default: $vm_vcpus"
 	echo -e "-net --network      Specify Network name for VM. Default: $network_name"
+	echo -e "-if --interface     Specify Network interface for VM. Default: $network_interface"
+	echo -e "-dhcp --dhcp        Flag for using DHCP on Network, else it will set static IP for VM. Default: $network_dhcp"
+	echo -e "-ip --ip            Specify Network IP for VM. Default: $network_ip"
+	echo -e "-mask --mask        Specify Network MASK for VM. Default: $network_mask"
+	echo -e "-gw --gateway       Specify Network GW for VM. Default: $network_gw"
+	echo -e "-dns --dns          Specify Network DNS server for VM. Default: $network_dns"
 	echo -e "-img --image-index  Specify a known config listed in images.ini. By default asks dynamically."
 	echo -e "-u --url            Specify custom url to an .qcow2 image. Default: $os_url"
 	echo -e "-i --interactive    Flag to attaching console upon VM start (also boots the VM)."
@@ -168,6 +174,28 @@ generate_cloud_init_disk() {
 
 	info_msg "Replacing hostname with $vm_name in cloud/$vm_name-init.yml"
 	sed -i "s/hostname:.*/hostname: $vm_name/" cloud/$vm_name-init.yml
+	info_msg "Configuring network settings in cloud/$vm_name-init.yml"
+	info_msg "Interface: $network_interface"
+	info_msg "DHCP: $network_dhcp"
+	sed -i "s/<INTERFACE>/$network_interface/g" cloud/$vm_name-init.yml
+	sed -i "s/<DHCP>/$network_dhcp/g" cloud/$vm_name-init.yml
+	static=""
+	if [ "$network_dhcp" = "false" ]; then
+	info_msg "IP: $network_ip/$network_mask"
+	info_msg "GW: $network_gw"
+	info_msg "DNS: $network_dns"
+		static="addresses:\n \
+             - $network_ip\/$network_mask\n \
+           routes:\n \
+             - to: default \n \
+               via: $network_gw \n \
+           nameservers: \n \
+             addresses: \n \
+               - $network_dns"
+	fi
+			
+
+	sed -i "s/<STATIC>/$static/g" cloud/$vm_name-init.yml
 
 	info_msg "Generating cloudinit image"
 	sudo cloud-localds cloud/$vm_name-init.img cloud/$vm_name-init.yml
@@ -266,6 +294,12 @@ set_os_info
 # VM creation default values
 vm_name='default-vm'
 network_name='default'
+network_dhcp='false'
+network_interface='enp1s0'
+network_ip='10.200.0.10'
+network_mask='24'
+network_gw='10.200.0.1'
+network_dns='1.1.1.1'
 vm_memory='2048'
 vm_storage='16G'
 vm_vcpus='2'
@@ -348,6 +382,35 @@ else
 			;;
 		--network | -net)
 			network_name="$2"
+			shift # shift argument
+			shift # shift value
+			;;
+		--dhcp | -dhcp)
+			network_dhcp="true"
+			shift # shift flag
+			;;
+		--interface | -if)
+			network_interface="$2"
+			shift # shift argument
+			shift # shift value
+			;;
+		--ip | -ip)
+			network_ip="$2"
+			shift # shift argument
+			shift # shift value
+			;;
+		--mask | -mask)
+			network_mask="$2"
+			shift # shift argument
+			shift # shift value
+			;;
+		--gateway | -gw)
+			network_gw="$2"
+			shift # shift argument
+			shift # shift value
+			;;
+		--dns | -dns)
+			network_dns="$2"
 			shift # shift argument
 			shift # shift value
 			;;
