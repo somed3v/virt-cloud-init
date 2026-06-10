@@ -72,7 +72,7 @@ OPTIONS
 Upon every run, you get the following interactive prompt:
 
 ```text
-0) debian13 debian-13-generic-arm64.qcow2
+0) debian13 debian-13-generic-amd64.qcow2
 1) debian12 debian-12-genericcloud-amd64-daily.qcow2
 2) debian11 debian-11-generic-amd64.qcow2
 3) debian10 debian-10-generic-amd64.qcow2
