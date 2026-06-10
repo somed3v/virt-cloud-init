@@ -52,13 +52,19 @@ all                    Run All commands above consecutively
 OPTIONS
 -h --help           Print this Help.
 -n --name           Specify VM and image name prefix. Default: default-vm
--o --os             Specify OS variant. Default: debian12
+-o --os             Specify OS variant. Default: debian13
 -m --memory         Specify VM memory (in MiB). Default: 2048
 -s --storage        Specify VM images size (in K|M|G). Default: 16G
 -c --cpus           Specify CPU numbers. Default: 2
 -net --network      Specify Network name for VM. Default: default
+-if --interface     Specify Network interface for VM. Default: enp1s0
+-dhcp --dhcp        Flag for using DHCP on Network, else it will set static IP for VM. Default: false
+-ip --ip            Specify Network IP for VM. Default: 10.200.0.10
+-mask --mask        Specify Network MASK for VM. Default: 24
+-gw --gateway       Specify Network GW for VM. Default: 10.200.0.1
+-dns --dns          Specify Network DNS server for VM. Default: 1.1.1.1
 -img --image-index  Specify a known config listed in images.ini. By default asks dynamically.
--u --url            Specify custom url to an .qcow2 image. Default: https://cloud.debian.org/images/cloud/bookworm/daily/latest/debian-12-genericcloud-amd64-daily.qcow2
+-u --url            Specify custom url to an .qcow2 image. Default: https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-arm64.qcow2
 -i --interactive    Flag to attaching console upon VM start (also boots the VM).
 -b --boot           Flag for booting VM after creation.
 ```
@@ -89,13 +95,17 @@ Download default Debian 11 image:
 ./virt-cloud-init.sh download
 ```
 
-Change VM image name to "my-vm", resize it to 32GB and generate a cloud image iso with config based on `cloud-init.yml`:
+Change VM image name to "my-vm", resize it to 32GB, use DHCP and generate a cloud image iso with config based on `cloud-init.yml`:
 
 ```bash
-./virt-cloud-init.sh prepare -n my-vm -m 4096 -s 32
+./virt-cloud-init.sh prepare -n my-vm -s 32 --dhcp
+```
+Change VM image name to "my-vm", set custom static IP, gateway and DNS server, and generate a cloud image iso with config based on `cloud-init.yml`:
+
+```bash
+./virt-cloud-init.sh prepare -n my-vm -ip 10.0.0.10 -mask 24 -gw 10.0.0.1 -dns 9.9.9.9
 ```
 
-Start VM with name "my-vm" and give 4096MB of memory
 
 <details>
 <summary>ℹ Note about Virtual Machine Manager URI</summary>
@@ -110,10 +120,10 @@ More info on this issue on [StackOverflow](https://stackoverflow.com/questions/3
 
 </details>
 
+Create VM with name "my-vm", with 4096MB of RAM and custom network
+
 ```bash
-./virt-cloud-init.sh run -n my-vm -m 4096
+./virt-cloud-init.sh create -n my-vm -m 4096 -net isolated_net
 ```
+Now you can start and access your VM inside Virtual Machine Manager GUI.
 
-Once you run initialize you vm in the output console, press `ctrl + ]` to exit tty.
-
-cd /run/media/mbrav/hd1/iso && ./virt-cloud-init.sh all -m 4096 -c 2 -s 12 -n node1
